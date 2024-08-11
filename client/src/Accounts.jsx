@@ -32,6 +32,7 @@ function Accounts({ open, drawerWidth, userId }) {
   const [editing, setEditing] = useState(null);
   const [trigger, setTrigger] = useState(false);
   const [includeInTotal, setIncludeInTotal] = useState(true);
+  const [formError, setFormError] = useState(false);
 
   useEffect(() => {
     if (userId) {
@@ -43,6 +44,12 @@ function Accounts({ open, drawerWidth, userId }) {
 
   const handleAdd = (e) => {
     e.preventDefault();
+
+    if (!accountName || !balance) {
+      setFormError(true);
+      return;
+    }
+
     axios
       .post(`${apiUrl}/accounts/add`, {
         userId,
@@ -57,6 +64,7 @@ function Accounts({ open, drawerWidth, userId }) {
         setIncludeInTotal(true);
         setAddDialog(false);
         setTrigger(!trigger);
+        setFormError(false);
       });
   };
 
@@ -229,6 +237,11 @@ function Accounts({ open, drawerWidth, userId }) {
               }
               label="Include in Total Balance"
             />
+            {formError && (
+              <Typography color="error" variant="body2">
+                Please fill all sections
+              </Typography>
+            )}
           </Box>
         </DialogContent>
         <DialogActions>

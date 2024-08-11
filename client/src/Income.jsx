@@ -13,6 +13,7 @@ import {
   MenuItem,
   Select,
   Tooltip,
+  Typography,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { LocalizationProvider, DesktopDatePicker } from "@mui/x-date-pickers";
@@ -32,6 +33,7 @@ function Income({ open, drawerWidth, userId }) {
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState(null);
   const [trigger, setTrigger] = useState(false);
+  const [formError, setFormError] = useState(false);
 
   const columns = [
     {
@@ -128,6 +130,12 @@ function Income({ open, drawerWidth, userId }) {
 
   const handleAdd = (e) => {
     e.preventDefault();
+
+    if (!source || !amount || !date || !accountId) {
+      setFormError(true);
+      return;
+    }
+
     axios
       .post(`${apiUrl}/incomes/add`, {
         userId,
@@ -144,6 +152,7 @@ function Income({ open, drawerWidth, userId }) {
         setDate(null);
         setAddDialog(false);
         setTrigger(!trigger);
+        setFormError(false);
       });
   };
 
@@ -269,6 +278,11 @@ function Income({ open, drawerWidth, userId }) {
                 renderInput={(params) => <TextField {...params} />}
               />
             </LocalizationProvider>
+            {formError && (
+              <Typography color="error" variant="body2">
+                Please fill all sections
+              </Typography>
+            )}
           </Box>
         </DialogContent>
         <DialogActions>

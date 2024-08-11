@@ -41,6 +41,7 @@ function Expenses({ open, drawerWidth, userId }) {
   const [createCategoryName, setCreateCategoryName] = useState("");
   const [date, setDate] = useState(null);
   const [trigger, setTrigger] = useState(false);
+  const [formError, setFormError] = useState(false);
 
   const columns = [
     {
@@ -157,6 +158,12 @@ function Expenses({ open, drawerWidth, userId }) {
 
   const handleAddExpense = (e) => {
     e.preventDefault();
+
+    if (!amount || !expense || !categoryId || !date || !accountId) {
+      setFormError(true);
+      return;
+    }
+
     axios
       .post(`${apiUrl}/expenses/add`, {
         userId,
@@ -175,11 +182,18 @@ function Expenses({ open, drawerWidth, userId }) {
         setCategoryId("");
         setAddDialog(false);
         setTrigger(!trigger);
+        setFormError(false);
       });
   };
 
   const handleAddCategory = (e) => {
     e.preventDefault();
+
+    if (!createCategoryName) {
+      setFormError(true);
+      return;
+    }
+
     axios
       .post(`${apiUrl}/categories/add`, {
         userId,
@@ -190,6 +204,7 @@ function Expenses({ open, drawerWidth, userId }) {
         setCreateCategoryName("");
         setAddCategoryDialog(false);
         setTrigger(!trigger);
+        setFormError(false);
       });
   };
 
@@ -380,6 +395,11 @@ function Expenses({ open, drawerWidth, userId }) {
                 renderInput={(params) => <TextField {...params} />}
               />
             </LocalizationProvider>
+            {formError && (
+              <Typography color="error" variant="body2">
+                Please fill all sections
+              </Typography>
+            )}
           </Box>
         </DialogContent>
         <DialogActions>
@@ -418,6 +438,11 @@ function Expenses({ open, drawerWidth, userId }) {
               onChange={(e) => setCreateCategoryName(e.target.value)}
               required
             />
+            {formError && (
+              <Typography color="error" variant="body2">
+                Please fill all sections
+              </Typography>
+            )}
           </Box>
         </DialogContent>
         <DialogActions>

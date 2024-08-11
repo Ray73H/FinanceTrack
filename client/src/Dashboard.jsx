@@ -10,19 +10,16 @@ import {
 import { PieChart } from "@mui/x-charts/PieChart";
 import axios from "axios";
 
-const data = [
-  { id: 0, value: 10, label: "series A" },
-  { id: 1, value: 15, label: "series B" },
-  { id: 2, value: 20, label: "series C" },
-];
-
 function Dashboard({ open, drawerWidth, userId }) {
   const apiUrl = import.meta.env.VITE_API_URL;
 
   const [accounts, setAccounts] = useState([]);
   const [incomes, setIncomes] = useState([]);
+  const [expenses, setExpenses] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [totalBalance, setTotalBalance] = useState(0);
   const [totalIncome, setTotalIncome] = useState(0);
+  const [totalExpense, setTotalExpense] = useState(0);
 
   useEffect(() => {
     // Total Balance
@@ -32,10 +29,17 @@ function Dashboard({ open, drawerWidth, userId }) {
         let total = 0;
         result.data.forEach((account) => {
           if (account.includeInTotal) {
-            total += account.balance;
+            total = parseFloat(parseFloat(total + account.balance).toFixed(2));
           }
         });
         setTotalBalance(total);
+      });
+    }
+
+    // Get Categories
+    if (userId) {
+      axios.get(`${apiUrl}/categories/${userId}`).then((result) => {
+        setCategories(result.data);
       });
     }
   }, [userId]);
@@ -47,21 +51,54 @@ function Dashboard({ open, drawerWidth, userId }) {
         setIncomes(result.data);
         let total = 0;
         result.data.forEach((income) => {
-          console.log(income);
-          console.log(
-            accounts.find((account) => account._id === income.accountId)
-          );
           if (
             accounts.find((account) => account._id === income.accountId)
               ?.includeInTotal
           ) {
-            total += income.amount;
+            total = parseFloat(parseFloat(total + income.amount).toFixed(2));
           }
         });
         setTotalIncome(total);
       });
     }
+
+    // Total Expense
+    if (userId) {
+      axios.get(`${apiUrl}/expenses/${userId}`).then((result) => {
+        setExpenses(result.data);
+        let total = 0;
+        result.data.forEach((expense) => {
+          console.log(expense);
+          if (
+            accounts.find((account) => account._id === expense.accountId)
+              ?.includeInTotal
+          ) {
+            total = parseFloat(parseFloat(total + expense.amount).toFixed(2));
+          }
+        });
+        setTotalExpense(total);
+      });
+    }
   }, [userId, accounts]);
+
+  const getExpenseValue = (categoryId) => {
+    let total = 0;
+    expenses.forEach((expense) => {
+      if (
+        accounts.find((account) => account._id === expense.accountId)
+          ?.includeInTotal &&
+        expense.categoryId === categoryId
+      ) {
+        total = parseFloat(total + expense.amount).toFixed(2);
+      }
+    });
+    return total;
+  };
+
+  const data = categories.map((category, index) => ({
+    label: category.name,
+    value: getExpenseValue(category._id),
+  }));
 
   return (
     <>
@@ -111,7 +148,7 @@ function Dashboard({ open, drawerWidth, userId }) {
               Total Expenses
             </Typography>
             <Typography variant="h4" color="red">
-              $3,000
+              ${totalExpense}
             </Typography>
           </Paper>
         </Box>

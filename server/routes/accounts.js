@@ -1,5 +1,7 @@
 const router = require("express").Router();
 const accountModel = require("../models/AccountModel");
+const incomeModel = require("../models/IncomeModel");
+const expenseModel = require("../models/ExpenseModel");
 
 router.route("/add").post((req, res) => {
   const { userId, accountName, balance } = req.body;
@@ -27,7 +29,13 @@ router.route("/:userId").get((req, res) => {
 router.route("/:id").delete((req, res) => {
   accountModel
     .findByIdAndDelete(req.params.id)
-    .then(() => res.json("Account deleted"))
+    .then(() => {
+      return incomeModel.deleteMany({ accountId: req.params.id });
+    })
+    .then(() => {
+      return expenseModel.deleteMany({ accountId: req.params.id });
+    })
+    .then(() => res.json("Account deleted. Income and expenses deleted."))
     .catch((err) => res.status(400).json("Error: " + err));
 });
 

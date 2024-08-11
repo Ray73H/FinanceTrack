@@ -74,7 +74,9 @@ router.route("/:id").delete(async (req, res) => {
   try {
     await expenseModel.findByIdAndDelete(req.params.id);
     const account = await accountModel.findById(accountId);
-    account.balance = parseFloat(account.balance + amount).toFixed(2);
+    account.balance = parseFloat(
+      Number(account.balance) + Number(amount)
+    ).toFixed(2);
     await account.save();
     res.json("Expense deleted and account updated");
   } catch (err) {
