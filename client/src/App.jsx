@@ -31,6 +31,7 @@ function App() {
     const ID = localStorage.getItem("userId");
     if (ID) {
       setUserId(ID);
+      navigate("/dashboard");
     } else {
       navigate("/login");
     }
@@ -47,6 +48,7 @@ function App() {
           open={open}
           drawerWidth={drawerWidth}
           handleDrawerToggle={handleDrawerToggle}
+          setLogin={setLogin}
         />
       )}
       <Routes>

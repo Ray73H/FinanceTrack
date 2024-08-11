@@ -15,7 +15,7 @@ import {
 import MenuIcon from "@mui/icons-material/Menu";
 import { useNavigate } from "react-router-dom";
 
-function Menu({ open, drawerWidth, handleDrawerToggle }) {
+function Menu({ open, drawerWidth, handleDrawerToggle, setLogin }) {
   const navigate = useNavigate();
 
   return (
@@ -84,6 +84,8 @@ function Menu({ open, drawerWidth, handleDrawerToggle }) {
             color="primary"
             fullWidth
             onClick={() => {
+              localStorage.removeItem("userId");
+              setLogin(false);
               navigate("/login");
             }}
           >

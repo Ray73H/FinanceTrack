@@ -9,35 +9,50 @@ import {
   Tab,
 } from "@mui/material";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+} from "firebase/auth";
+import { auth } from "./firebase";
 
-const Login = ({ setLogin }) => {
+const Login = ({ setLogin, loginMessage }) => {
   const apiUrl = import.meta.env.VITE_API_URL;
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorDialog, setErrorDialog] = useState(false);
-  const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    axios
-      .post(`${apiUrl}/login`, { email, password })
-      .then((result) => {
-        console.log(result);
-        if (result.data.message === "Success") {
-          localStorage.setItem("userId", result.data.userId);
-          setLogin(true);
-          navigate("/dashboard");
-        } else {
-          setErrorDialog(true);
-        }
+
+    signInWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        const user = userCredential.user;
+        user.getIdToken().then((idToken) => {
+          axios
+            .post(`${apiUrl}/login`, { idToken })
+            .then((result) => {
+              if (result.data.message === "Success") {
+                localStorage.setItem("userId", result.data.userId);
+                setLogin(true);
+              } else {
+                setErrorDialog(true);
+              }
+            })
+            .catch((error) => console.log(error));
+        });
       })
-      .catch((error) => console.log(error));
+      .catch((error) => {
+        console.log(error);
+        setErrorDialog(true);
+      });
   };
 
   return (
     <form onSubmit={handleSubmit}>
+      {loginMessage ? (
+        <Typography mb={2}>Successfully Registered. Please Login.</Typography>
+      ) : null}
       <Box mb={2}>
         <TextField
           fullWidth
@@ -71,23 +86,30 @@ const Login = ({ setLogin }) => {
   );
 };
 
-const Register = ({ onRegister }) => {
+const Register = ({ setTab }) => {
   const apiUrl = import.meta.env.VITE_API_URL;
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    axios
-      .post(`${apiUrl}/register`, { name, email, password })
-      .then((result) => {
-        console.log(result);
-        navigate("/dashboard");
+
+    createUserWithEmailAndPassword(auth, email, password)
+      .then(async (userCredential) => {
+        const user = userCredential.user;
+        const idToken = await user.getIdToken();
+        axios
+          .post(`${apiUrl}/register`, { idToken, name, email })
+          .then(() => {
+            setTab();
+          })
+          .catch((error) => console.error("Error storing user data:", error));
       })
-      .catch((error) => console.log(error));
+      .catch((error) => {
+        console.error("Error during registration:", error);
+      });
   };
 
   return (
@@ -131,6 +153,7 @@ const Register = ({ onRegister }) => {
 
 const Auth = ({ setLogin }) => {
   const [tab, setTab] = useState(0);
+  const [loginMessage, setLoginMessage] = useState(false);
 
   const handleTabChange = (event, newValue) => {
     setTab(newValue);
@@ -155,9 +178,17 @@ const Auth = ({ setLogin }) => {
               setLogin={(login) => {
                 setLogin(login);
               }}
+              loginMessage={loginMessage}
             />
           )}
-          {tab === 1 && <Register />}
+          {tab === 1 && (
+            <Register
+              setTab={() => {
+                setLoginMessage(true);
+                setTab(0);
+              }}
+            />
+          )}
         </Box>
       </Box>
     </Container>

@@ -68,7 +68,6 @@ function Dashboard({ open, drawerWidth, userId }) {
         setExpenses(result.data);
         let total = 0;
         result.data.forEach((expense) => {
-          console.log(expense);
           if (
             accounts.find((account) => account._id === expense.accountId)
               ?.includeInTotal
