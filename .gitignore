@@ -1,2 +1,4 @@
 server/firebase.config.json
 server/.env
+
+client/.env
